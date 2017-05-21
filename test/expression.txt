@@ -1,0 +1,25 @@
+lex {
+  *blank : "[\t\r\b ]+" ;
+  split  : "\n" ;
+  add    : "(?<=[0-9\)][\t\r\b ]*)\+" ;
+  sub    : "(?<=[0-9\)][\t\r\b ]*)-" ;
+  mul    : "\*" ;
+  div    : "/" ;
+  left   : "\(" ;
+  right  : "\)" ;
+  num    : "[\+-]?[0-9]+(\.[0-9]+)?" ;
+}
+
+grammar exps {
+  exps    -> exp *split exps
+          |  exp *split 
+          |  exp ;
+  exp     -> term add exp
+          |  term sub exp
+          |  term ;
+  term    -> factor mul term
+          |  factor div term
+          |  factor ;
+  factor  -> num
+          |  left exp right ;
+}

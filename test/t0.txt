@@ -1,0 +1,8 @@
+thread Thread_2
+features
+	AP_Position_Input : in data port Nav_Types1::Nav_Types2::Position_GPS;
+flows
+        flow1: flow source signal {result1::result2 +=> constant access 50.0};
+properties
+	none ;
+end Thread_2;

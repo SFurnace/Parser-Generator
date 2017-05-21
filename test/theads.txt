@@ -1,0 +1,95 @@
+lex {
+    *empty     : "[\t\n\b\r ]+" ;
+    thread     : "thread(?![0-9a-zA-Z_])" ;
+    port       : "port(?![0-9a-zA-Z_])" ;
+    features   : "features(?![0-9a-zA-Z_])" ;
+    flows      : "flows(?![0-9a-zA-Z_])" ;
+    event      : "event(?![0-9a-zA-Z_])" ;
+    parameter  : "parameter(?![0-9a-zA-Z_])" ;
+    properties : "properties(?![0-9a-zA-Z_])" ;
+    end        : "end(?![0-9a-zA-Z_])" ;
+    none       : "none(?![0-9a-zA-Z_])" ;
+    in         : "in(?![0-9a-zA-Z_])" ;
+    out        : "out(?![0-9a-zA-Z_])" ;
+    flow       : "flow(?![0-9a-zA-Z_])" ;
+    source     : "source(?![0-9a-zA-Z_])" ;
+    sink       : "sink(?![0-9a-zA-Z_])" ;
+    path       : "path(?![0-9a-zA-Z_])" ;
+    data       : "data(?![0-9a-zA-Z_])" ;
+    access     : "access(?![0-9a-zA-Z_])" ;
+    constant   : "constant(?![0-9a-zA-Z_])" ;
+    op0        : "=>" ;
+    op1        : "\+=>" ;
+    op2        : ":(?!:)" ;
+    op3        : "::" ;
+    op4        : "\{" ;
+    op5        : "}" ;
+    op6        : "->" ;
+    op7        : ";" ;
+    identifier : "[a-zA-Z](_?[a-zA-Z0-9])*" ;
+    decimal    : "(\+|-)?[0-9]+\.[0-9]+" ;
+}
+
+grammar Threads {
+    Threads -> Thread Threads
+            |  Thread ;
+
+    Thread -> thread identifier end identifier op7
+            | thread identifier features feature end identifier op7
+            | thread identifier flows flow_spec end identifier op7
+            | thread identifier properties association op7 end identifier op7
+            | thread identifier features feature flows flow_spec end identifier op7
+            | thread identifier features feature properties association op7 end identifier op7
+            | thread identifier flows flow_spec properties association op7 end identifier op7
+            | thread identifier features feature flows flow_spec properties association op7 end identifier op7 ;
+
+    feature -> port_spec
+            |  Parameter
+            |  none op7 ;
+
+    port_spec -> identifier op2 IOtype port_type op7
+              |  identifier op2 IOtype port_type op4 associations op5 op7 ;
+
+    port_type -> data port
+              |  data port reference
+              |  event data port
+              |  event data port reference
+              |  event port ;
+
+    Parameter -> identifier op2 IOtype parameter op7
+              |  identifier op2 IOtype parameter reference op7
+              |  identifier op2 IOtype parameter op4 associations op5 op7
+              |  identifier op2 IOtype parameter reference op4 associations op5 op7 ;
+
+    IOtype -> in
+           |  out
+           |  in out ;
+
+    flow_spec -> flow_source_spec
+              |  flow_sink_spec
+              |  flow_path_spec
+              |  none op7 ;
+
+    flow_source_spec -> identifier op2 flow source identifier op7
+                     |  identifier op2 flow source identifier op4 associations op5 op7 ;
+
+    flow_sink_spec -> identifier op2 flow sink identifier op7
+                   |  identifier op2 flow sink identifier op4 associations op5 op7 ;
+
+    flow_path_spec -> identifier op2 flow path identifier op6 identifier op7 ;
+
+    association -> identifier splitter access decimal
+                |  identifier splitter constant access decimal
+                |  identifier op3 identifier splitter access decimal
+                |  identifier op3 identifier splitter constant access decimal
+                |  none ;
+
+    splitter -> op0
+             |  op1 ;
+
+    reference -> identifier
+              |  identifier op3 reference ;
+
+    associations -> association
+                 |  association associations ;
+}
