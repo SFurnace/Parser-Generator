@@ -4,18 +4,20 @@
 - `director.list`: use to generate SLR(1) direct table.
 - `lexer.lisp`: lexer part
 - `parser.lisp`: parser part
-- `main`: a wrapper help to use this tool easily.
+- `slr1.ros`: a wrapper help to use this tool easily.
 
-grammar_file
+the grammar_file can be written like below, identifiers start with a `*` will be ignored in result.
 ```
 lex {
-    id: "";
+    *ignored_id: "[\t\n\r\b ]+";
+    id0: "a regex string";
+    id1: "another regex string";
     ...
 }
 
-grammar id {
-    id -> id id ...
-       |  id id ...
+grammar G {
+    G ->  id0 *id1 ...
+       |  G id1 ...
        |  ... ;
    ...
 }
