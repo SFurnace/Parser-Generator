@@ -1,16 +1,17 @@
-;;; SLR(1) Parser Generator
-;;;
-;;; Author: Dr.CZ
-;;; Date: 2017-5-19
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#| <Put a one-line description here>
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp (ql:quickload '(:alexandria) :silent t)
+  (load "./parser.lisp"))
 
-(load "./parser.lisp")
-
-(defpackage slr
-  (:use :common-lisp :alexandria
-        :slr-lexer :slr-parser
-        :slr-regex :slr-director :slr-symbols)
-  (:import-from :sb-ext *posix-argv*))
-(in-package :slr)
+(defpackage :ros.script.slr1.3704355912
+  (:use :cl :alexandria :slr-lexer :slr-parser
+        :slr-regex :slr-director :slr-symbols))
+(in-package :ros.script.slr1.3704355912)
 
 (defparameter *lexer*
   (deflexer
@@ -120,7 +121,7 @@
       (let ((*lexer* (deflexer (generate-lexer (elt-tree tree 0))))
             (*parser* (defslr1 (intern (get-property (elt-tree tree 1) :str-val))
                           (generate-grammar (elt-tree tree 2))))
-	    (*for-debug* t))
+            (*for-debug* t))
         (dolist (file files)
           (with-open-file (s file)
             (let ((l (do-lex *lexer* s)))
@@ -136,12 +137,13 @@
                          (generate-grammar (elt-tree tree 2)))))
       (print-slr1-table *parser*))))
 
-(defun main (&optional (args *posix-argv*))
+(defun main (&rest argv)
+  (declare (ignorable argv))
   (handler-case
       (cond
-        ((or (= 1 (length args))
-             (member "-h" args :test #'string-equal)
-             (member "--help" args :test #'string-equal))
+        ((or (= 0 (length argv))
+             (member "-h" argv :test #'string-equal)
+             (member "--help" argv :test #'string-equal))
          (format t (string-trim '(#\Space #\Tab #\Newline) "
 This is a SLR(1) parser generator.
 Usage:
@@ -153,20 +155,18 @@ Optional:
     --print-properties        print properties of AST nodes.
 ")))
 
-        ((= (length args) 2)
-         (print-grammar (second args)))
+        ((= (length argv) 1)
+         (print-grammar (first argv)))
 
-        ((> (length args) 2)
-         (let ((sl (member "--lex" args :test #'string-equal))
-               (pp (member "--print-properties" args :test #'string-equal))
+        ((> (length argv) 1)
+         (let ((sl (member "--lex" argv :test #'string-equal))
+               (pp (member "--print-properties" argv :test #'string-equal))
                (files (remove-if #'(lambda (s)
                                      (member s '("--print-properties"
                                                  "-h" "--help" "--lex")
                                              :test #'string-equal))
-                                 (cddr args))))
-           (do-parser (second args) files :print-properties pp :stop-lex sl))))
+                                 (cdr argv))))
+           (do-parser (first argv) files :print-properties pp :stop-lex sl))))
 
     (simple-error (c) (format t "~a~%" c))))
-
-;; (main (list " " "./test/theads.txt" "./test/t1.txt"))
-(sb-ext:save-lisp-and-die "slr1" :toplevel #'main :executable t :compression t)
+;;; vim: set ft=lisp lisp:
